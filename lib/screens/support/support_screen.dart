@@ -1,153 +1,22 @@
+import 'package:employee_app/bindings/assigned_request_details_binding.dart';
 import 'package:employee_app/core/theme/app_colors.dart';
-import 'package:employee_app/screens/support/create_support_request_screen.dart';
-import 'package:employee_app/screens/support/support_details_screen.dart';
+import 'package:employee_app/core/utils/support_request_utils.dart';
+import 'package:employee_app/models/support/assigned_request_model.dart';
+import 'package:employee_app/models/support/raised_request_model.dart';
+import 'package:employee_app/screens/support/assigned_request_details_screen.dart';
+import 'package:employee_app/screens/support/raised_request_details_screen.dart';
+import 'package:employee_app/screens/support/widgets/my_requests_shimmer.dart';
 import 'package:employee_app/screens/support/widgets/ticket_status_badge.dart';
+import 'package:employee_app/viewmodels/support_viewmodel.dart';
 import 'package:employee_app/widgets/auth/auth_background.dart';
 import 'package:employee_app/widgets/auth/auth_page_route.dart';
-import 'package:employee_app/widgets/auth/auth_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SupportScreen extends StatefulWidget {
+class SupportScreen extends GetView<SupportViewModel> {
   const SupportScreen({super.key});
-
-  @override
-  State<SupportScreen> createState() => _SupportScreenState();
-}
-
-class _SupportScreenState extends State<SupportScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  List<Map<String, dynamic>> _requests = _seedRequests();
-
-  static List<Map<String, dynamic>> _seedRequests() {
-    return [
-      {
-        'id': 'SUP-1025',
-        'category': 'IT Support',
-        'subject': 'Unable to connect to VPN',
-        'description':
-            'I am unable to connect to the company VPN from my home network since yesterday evening.',
-        'submittedDate': '12 Aug 2026',
-        'priority': 'High',
-        'status': 'In Progress',
-        'attachment': 'vpn_error_log.pdf',
-        'attachmentType': 'PDF',
-        'messages': [
-          {
-            'sender': 'Logesh K',
-            'message':
-                'I am unable to connect to the company VPN from my home network since yesterday evening.',
-            'dateTime': '12 Aug 2026, 10:15 AM',
-            'isEmployee': true,
-          },
-          {
-            'sender': 'IT Support Team',
-            'message':
-                'Thank you for reporting this. We are checking your VPN credentials and will update you shortly.',
-            'dateTime': '12 Aug 2026, 11:30 AM',
-            'isEmployee': false,
-          },
-          {
-            'sender': 'IT Support Team',
-            'message':
-                'Your VPN profile has been refreshed. Please try reconnecting and let us know if the issue persists.',
-            'dateTime': '12 Aug 2026, 02:45 PM',
-            'isEmployee': false,
-          },
-        ],
-      },
-      {
-        'id': 'SUP-1018',
-        'category': 'Payroll',
-        'subject': 'Payroll clarification for July',
-        'description':
-            'There seems to be a discrepancy in my July payslip regarding overtime hours.',
-        'submittedDate': '05 Aug 2026',
-        'priority': 'Medium',
-        'status': 'Resolved',
-        'attachment': null,
-        'attachmentType': null,
-        'messages': [
-          {
-            'sender': 'Logesh K',
-            'message':
-                'There seems to be a discrepancy in my July payslip regarding overtime hours.',
-            'dateTime': '05 Aug 2026, 09:00 AM',
-            'isEmployee': true,
-          },
-          {
-            'sender': 'HR Payroll',
-            'message':
-                'We have reviewed your payslip and issued a corrected version. Please check your email.',
-            'dateTime': '06 Aug 2026, 04:00 PM',
-            'isEmployee': false,
-          },
-        ],
-      },
-      {
-        'id': 'SUP-1002',
-        'category': 'Attendance',
-        'subject': 'Unable to mark attendance',
-        'description':
-            'The attendance app shows an error when I try to check in from the office premises.',
-        'submittedDate': '28 Jul 2026',
-        'priority': 'Critical',
-        'status': 'Closed',
-        'attachment': 'attendance_error.png',
-        'attachmentType': 'Image',
-        'messages': [
-          {
-            'sender': 'Logesh K',
-            'message':
-                'The attendance app shows an error when I try to check in from the office premises.',
-            'dateTime': '28 Jul 2026, 08:45 AM',
-            'isEmployee': true,
-          },
-        ],
-      },
-    ];
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  void _onRequestSubmitted(Map<String, dynamic> request) {
-    setState(() => _requests.insert(0, request));
-    _tabController.animateTo(1);
-    showAuthSnackBar(
-      context,
-      'Your support request has been submitted successfully.',
-    );
-  }
-
-  void _openDetails(Map<String, dynamic> request) {
-    HapticFeedback.selectionClick();
-    Navigator.of(context).push(
-      authPageRoute(
-        SupportDetailsScreen(
-          request: request,
-          onRequestUpdated: (updated) {
-            setState(() {
-              final index =
-                  _requests.indexWhere((r) => r['id'] == updated['id']);
-              if (index != -1) _requests[index] = updated;
-            });
-          },
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +40,7 @@ class _SupportScreenState extends State<SupportScreen>
           ),
         ),
         bottom: TabBar(
-          controller: _tabController,
+          controller: controller.tabController,
           labelColor: AppColors.black,
           unselectedLabelColor: AppColors.grey500,
           indicatorColor: AppColors.black,
@@ -185,9 +54,23 @@ class _SupportScreenState extends State<SupportScreen>
             fontWeight: FontWeight.w500,
           ),
           tabs: const [
-            Tab(text: 'New Request'),
             Tab(text: 'My Requests'),
+            Tab(text: 'Assigned to Me'),
           ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: controller.openCreateRequest,
+        backgroundColor: AppColors.black,
+        foregroundColor: AppColors.white,
+        elevation: 4,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(
+          'New Request',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: Stack(
@@ -196,13 +79,10 @@ class _SupportScreenState extends State<SupportScreen>
           SafeArea(
             top: false,
             child: TabBarView(
-              controller: _tabController,
+              controller: controller.tabController,
               children: [
-                SupportRequestForm(onSubmitted: _onRequestSubmitted),
-                _MyRequestsTab(
-                  requests: _requests,
-                  onTap: _openDetails,
-                ),
+                const _MyRequestsTab(),
+                const _AssignedRequestsTab(),
               ],
             ),
           ),
@@ -212,78 +92,79 @@ class _SupportScreenState extends State<SupportScreen>
   }
 }
 
-class _MyRequestsTab extends StatelessWidget {
-  const _MyRequestsTab({
-    required this.requests,
-    required this.onTap,
-  });
-
-  final List<Map<String, dynamic>> requests;
-  final ValueChanged<Map<String, dynamic>> onTap;
+class _MyRequestsTab extends GetView<SupportViewModel> {
+  const _MyRequestsTab();
 
   @override
   Widget build(BuildContext context) {
-    if (requests.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.support_agent_outlined,
-                size: 48,
-                color: AppColors.grey500,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No support requests yet',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Submit a new request from the New Request tab.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppColors.grey700,
-                ),
-              ),
-            ],
-          ),
+    return Obx(() {
+      if (controller.isLoadingMyRequests.value ||
+          controller.isRefreshingMyRequests.value) {
+        return const MyRequestsShimmer();
+      }
+
+      if (controller.myRequestsError.value != null) {
+        return _SupportMessageState(
+          message: controller.myRequestsError.value!,
+          icon: Icons.error_outline_rounded,
+          actionLabel: 'Retry',
+          onAction: controller.fetchMyRequests,
+        );
+      }
+
+      if (controller.myRequests.isEmpty) {
+        final message = controller.myRequestsEmptyMessage.value;
+        if (message != null && message.trim().isNotEmpty) {
+          return _SupportMessageState(message: message);
+        }
+      }
+
+      return RefreshIndicator(
+        onRefresh: controller.refreshMyRequests,
+        color: AppColors.black,
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 88),
+          itemCount: controller.myRequests.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final request = controller.myRequests[index];
+            return _MyRequestCard(
+              request: request,
+              onTap: () => _openDetails(context, request),
+            );
+          },
         ),
       );
-    }
+    });
+  }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      itemCount: requests.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        return _SupportRequestCard(
-          request: requests[index],
-          onTap: () => onTap(requests[index]),
-        );
-      },
+  void _openDetails(BuildContext context, RaisedRequestData request) {
+    HapticFeedback.selectionClick();
+    Navigator.of(context).push(
+      authPageRoute(RaisedRequestDetailsScreen(request: request)),
     );
   }
 }
 
-class _SupportRequestCard extends StatelessWidget {
-  const _SupportRequestCard({
+class _MyRequestCard extends StatelessWidget {
+  const _MyRequestCard({
     required this.request,
     required this.onTap,
   });
 
-  final Map<String, dynamic> request;
+  final RaisedRequestData request;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final statusLabel = SupportRequestUtils.mapStatusLabel(request.status);
+    final createdDate =
+        SupportRequestUtils.formatCreatedDate(request.createdAt);
+    final category = request.categoryName.isNotEmpty
+        ? request.categoryName
+        : request.category;
+
     return Material(
       color: AppColors.white,
       borderRadius: BorderRadius.circular(16),
@@ -310,44 +191,83 @@ class _SupportRequestCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Ticket #${request['id']}',
+                      'Support ID : #${request.supportFormId}',
                       style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.black,
-                      ),
-                    ),
-                    const Spacer(),
-                    TicketStatusBadge(status: request['status'] as String),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _buildRow('Category', request['category'] as String),
-                const SizedBox(height: 6),
-                _buildRow('Subject', request['subject'] as String),
-                const SizedBox(height: 6),
-                _buildRow('Submitted', request['submittedDate'] as String),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text(
-                      'Priority: ',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.grey700,
                       ),
                     ),
-                    PriorityBadge(priority: request['priority'] as String),
+                    const Spacer(),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      size: 22,
+                      color: AppColors.grey500,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Icon(
-                    Icons.chevron_right_rounded,
+                const SizedBox(height: 14),
+                Text(
+                  'Subject',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
                     color: AppColors.grey500,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  request.subject,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 14),
+                _CardField(label: 'Category', value: category),
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Priority',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.grey500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          PriorityBadge(priority: request.priority),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Status',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.grey500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          TicketStatusBadge(status: statusLabel),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _CardField(label: 'Created', value: createdDate),
               ],
             ),
           ),
@@ -355,25 +275,281 @@ class _SupportRequestCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildRow(String label, String value) {
-    return RichText(
-      text: TextSpan(
-        style: GoogleFonts.inter(fontSize: 13, color: AppColors.grey700),
-        children: [
-          TextSpan(
-            text: '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.w500),
+class _AssignedRequestsTab extends GetView<SupportViewModel> {
+  const _AssignedRequestsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isLoadingAssignedRequests.value ||
+          controller.isRefreshingAssignedRequests.value) {
+        return const MyRequestsShimmer();
+      }
+
+      if (controller.assignedRequestsError.value != null) {
+        return _SupportMessageState(
+          message: controller.assignedRequestsError.value!,
+          icon: Icons.error_outline_rounded,
+          actionLabel: 'Retry',
+          onAction: controller.fetchAssignedRequests,
+        );
+      }
+
+      if (controller.assignedRequests.isEmpty) {
+        final message = controller.assignedRequestsEmptyMessage.value;
+        if (message != null && message.trim().isNotEmpty) {
+          return _SupportMessageState(message: message);
+        }
+      }
+
+      return RefreshIndicator(
+        onRefresh: controller.refreshAssignedRequests,
+        color: AppColors.black,
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 88),
+          itemCount: controller.assignedRequests.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final request = controller.assignedRequests[index];
+            return _AssignedRequestCard(
+              request: request,
+              onTap: () => _openDetails(context, request),
+            );
+          },
+        ),
+      );
+    });
+  }
+
+  void _openDetails(BuildContext context, AssignedRequestData request) {
+    HapticFeedback.selectionClick();
+    Get.to(
+      () => const AssignedRequestDetailsScreen(),
+      binding: AssignedRequestDetailsBinding(request),
+    );
+  }
+}
+
+class _AssignedRequestCard extends StatelessWidget {
+  const _AssignedRequestCard({
+    required this.request,
+    required this.onTap,
+  });
+
+  final AssignedRequestData request;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusLabel = SupportRequestUtils.mapStatusLabel(request.status);
+    final createdDate =
+        SupportRequestUtils.formatCreatedDate(request.createdAt);
+    final category = request.categoryName.isNotEmpty
+        ? request.categoryName
+        : request.category;
+
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey300),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-          TextSpan(
-            text: value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.black,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Support ID : #${request.supportFormId}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.grey700,
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      size: 22,
+                      color: AppColors.grey500,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Subject',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppColors.grey500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  request.subject,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 14),
+                _CardField(label: 'Category', value: category),
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Priority',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.grey500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          PriorityBadge(priority: request.priority),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Status',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.grey500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          TicketStatusBadge(status: statusLabel),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _CardField(label: 'Created', value: createdDate),
+              ],
             ),
           ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _SupportMessageState extends StatelessWidget {
+  const _SupportMessageState({
+    required this.message,
+    this.icon = Icons.support_agent_outlined,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String message;
+  final IconData icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 48, color: AppColors.grey500),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: AppColors.grey700,
+                height: 1.4,
+              ),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: onAction,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.black,
+                  side: const BorderSide(color: AppColors.black),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  actionLabel!,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CardField extends StatelessWidget {
+  const _CardField({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: AppColors.grey500,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value.isNotEmpty ? value : '—',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.black,
+          ),
+        ),
+      ],
     );
   }
 }

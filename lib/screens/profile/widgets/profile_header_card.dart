@@ -9,14 +9,16 @@ class ProfileHeaderCard extends StatelessWidget {
     required this.employeeId,
     required this.email,
     required this.mobile,
-    this.completionPercent,
+    this.role,
+    this.profileImageUrl,
   });
 
   final String name;
   final String employeeId;
   final String email;
   final String mobile;
-  final int? completionPercent;
+  final String? role;
+  final String? profileImageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -36,33 +38,6 @@ class ProfileHeaderCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          if (completionPercent != null) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: completionPercent! / 100,
-                      minHeight: 5,
-                      backgroundColor: AppColors.white.withOpacity(0.2),
-                      valueColor: const AlwaysStoppedAnimation(AppColors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '$completionPercent% Complete',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white.withOpacity(0.9),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
           Hero(
             tag: 'profile_avatar',
             child: Container(
@@ -77,14 +52,19 @@ class ProfileHeaderCard extends StatelessWidget {
               child: CircleAvatar(
                 radius: 44,
                 backgroundColor: AppColors.white.withOpacity(0.15),
-                child: Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : 'L',
-                  style: GoogleFonts.inter(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.white,
-                  ),
-                ),
+                backgroundImage: _hasProfileImage
+                    ? NetworkImage(profileImageUrl!)
+                    : null,
+                child: _hasProfileImage
+                    ? null
+                    : Text(
+                        _initials,
+                        style: GoogleFonts.inter(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.white,
+                        ),
+                      ),
               ),
             ),
           ),
@@ -97,7 +77,19 @@ class ProfileHeaderCard extends StatelessWidget {
               color: AppColors.white,
               letterSpacing: -0.3,
             ),
+            textAlign: TextAlign.center,
           ),
+          if (role != null && role!.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              role!,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.white.withOpacity(0.9),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           _InfoChip(icon: Icons.badge_outlined, label: employeeId),
           const SizedBox(height: 8),
@@ -107,6 +99,20 @@ class ProfileHeaderCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool get _hasProfileImage =>
+      profileImageUrl != null && profileImageUrl!.trim().isNotEmpty;
+
+  String get _initials {
+    final parts = name
+        .trim()
+        .split(' ')
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 }
 

@@ -1,78 +1,31 @@
+import 'package:employee_app/core/routes/app_routes.dart';
 import 'package:employee_app/core/theme/app_colors.dart';
-import 'package:employee_app/screens/login/login_screen.dart';
 import 'package:employee_app/screens/profile/widgets/profile_app_bar.dart';
 import 'package:employee_app/screens/profile/widgets/profile_detail_tile.dart';
+import 'package:employee_app/utils/shared_pref_helper.dart';
 import 'package:employee_app/widgets/auth/auth_background.dart';
-import 'package:employee_app/widgets/auth/auth_page_route.dart';
-import 'package:employee_app/widgets/auth/auth_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  void _onDeleteAccountTap(BuildContext context) {
+  void _onChangePasswordTap() {
     HapticFeedback.lightImpact();
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Delete Account',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to delete your account? This action cannot be undone.',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: AppColors.grey700,
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-                color: AppColors.grey700,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              showAuthSnackBar(
-                context,
-                'Account deletion — coming soon',
-              );
-            },
-            child: Text(
-              'Delete',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-                color: AppColors.error,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    Get.toNamed(AppRoutes.changePassword);
   }
 
-  void _onLogoutTap(BuildContext context) {
+  void _onDeleteAccountTap() {
+    HapticFeedback.lightImpact();
+    Get.toNamed(AppRoutes.deleteAccount);
+  }
+
+  void _onLogoutTap(BuildContext context) async {
     HapticFeedback.mediumImpact();
-    Navigator.of(context).pushAndRemoveUntil(
-      authPageRoute(const LoginScreen()),
-      (_) => false,
-    );
+    await SharedPrefHelper.clearEmployeeDetails();
+    Get.offAllNamed(AppRoutes.login);
   }
 
   @override
@@ -97,11 +50,18 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   const ProfileSectionTitle(title: 'Account'),
                   _SettingsMenuTile(
+                    icon: Icons.lock_reset_rounded,
+                    label: 'Change Password',
+                    subtitle: 'Update your account password',
+                    onTap: _onChangePasswordTap,
+                  ),
+                  const SizedBox(height: 12),
+                  _SettingsMenuTile(
                     icon: Icons.delete_outline_rounded,
                     label: 'Delete Account',
                     subtitle: 'Permanently remove your account',
                     isDestructive: true,
-                    onTap: () => _onDeleteAccountTap(context),
+                    onTap: _onDeleteAccountTap,
                   ),
                   const SizedBox(height: 20),
                   const ProfileSectionTitle(title: 'Session'),

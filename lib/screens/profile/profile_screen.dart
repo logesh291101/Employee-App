@@ -1,88 +1,17 @@
 import 'package:employee_app/core/theme/app_colors.dart';
-import 'package:employee_app/screens/profile/edit_profile_screen.dart';
 import 'package:employee_app/screens/profile/settings_screen.dart';
 import 'package:employee_app/screens/profile/widgets/profile_app_bar.dart';
 import 'package:employee_app/screens/profile/widgets/profile_detail_tile.dart';
 import 'package:employee_app/screens/profile/widgets/profile_header_card.dart';
+import 'package:employee_app/viewmodels/profile_viewmodel.dart';
 import 'package:employee_app/widgets/auth/auth_background.dart';
-import 'package:employee_app/widgets/auth/auth_page_route.dart';
-import 'package:employee_app/widgets/auth/auth_widgets.dart';
-import 'package:employee_app/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends GetView<ProfileViewModel> {
   const ProfileScreen({super.key});
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  bool _isLoading = false;
-
-  String _fullName = 'Logesh';
-  String _employeeId = 'VEDA-1024';
-  String _email = 'logesh@vedagroup.com';
-  String _mobile = '+91 98765 43210';
-  String _designation = 'Jr.Flutter Developer';
-  String _department = 'Information Technology';
-  String _reportingManager = 'John Smith';
-  String _officeLocation = 'Bangalore Headquarters';
-  String _loginType = 'Employee Login';
-  String _employeeStatus = 'Active';
-  String _joiningDate = '15 March 2022';
-  String _employeeCode = 'EMP-2022-1024';
-  String _workLocation = 'Bangalore, India';
-  String _address = '42, MG Road, Bangalore';
-
-  int get _completionPercent {
-    final fields = [
-      _fullName,
-      _email,
-      _mobile,
-      _officeLocation,
-      _address,
-      _designation,
-      _department,
-    ];
-    final filled = fields.where((f) => f.trim().isNotEmpty).length;
-    return ((filled / fields.length) * 100).round();
-  }
-
-  Future<void> _onRefresh() async {
-    setState(() => _isLoading = true);
-    HapticFeedback.lightImpact();
-    await Future<void>.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    showAuthSnackBar(context, 'Profile refreshed');
-  }
-
-  Future<void> _onEditProfile() async {
-    HapticFeedback.lightImpact();
-    final result = await Navigator.of(context).push<Map<String, String>>(
-      authPageRoute(
-        EditProfileScreen(
-          fullName: _fullName,
-          email: _email,
-          mobile: _mobile,
-          officeLocation: _officeLocation,
-          address: _address,
-        ),
-      ),
-    );
-
-    if (result == null || !mounted) return;
-
-    setState(() {
-      _fullName = result['fullName'] ?? _fullName;
-      _email = result['email'] ?? _email;
-      _mobile = result['mobile'] ?? _mobile;
-      _officeLocation = result['officeLocation'] ?? _officeLocation;
-      _address = result['address'] ?? _address;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,108 +21,181 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: 'My Profile',
         onSettingsTap: () {
           HapticFeedback.lightImpact();
-          Navigator.of(context).push(authPageRoute(const SettingsScreen()));
+          Get.to(() => const SettingsScreen());
         },
       ),
       body: Stack(
         children: [
           const Positioned.fill(child: AuthBackground()),
-          if (_isLoading)
-            const Positioned.fill(
-              child: ColoredBox(
-                color: Color(0x88FFFFFF),
-                child: Center(
-                  child: SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: AppColors.black,
+          Obx(() {
+            if (controller.isLoading.value && controller.profile.value == null) {
+              return const Center(
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: AppColors.black,
+                  ),
+                ),
+              );
+            }
+
+            final profile = controller.profile.value;
+            final error = controller.errorMessage.value;
+
+            if (profile == null) {
+              return _ProfileErrorState(
+                message: error ?? 'Unable to load profile.',
+                onRetry: controller.fetchProfile,
+              );
+            }
+
+            return Stack(
+              children: [
+                if (controller.isLoading.value)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: Color(0x88FFFFFF),
+                      child: Center(
+                        child: SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: AppColors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                SafeArea(
+                  top: false,
+                  child: RefreshIndicator(
+                    color: AppColors.black,
+                    onRefresh: controller.refreshProfile,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ProfileHeaderCard(
+                            name: profile.name,
+                            employeeId: profile.employeeNumber,
+                            email: profile.email,
+                            mobile: profile.phoneNumber,
+                            role: profile.role,
+                            profileImageUrl: profile.profileImage,
+                          ),
+                          const SizedBox(height: 28),
+                          const ProfileSectionTitle(title: 'Employee Details'),
+                          ProfileDetailTile(
+                            icon: Icons.work_outline,
+                            label: 'Role',
+                            value: profile.role,
+                          ),
+                          ProfileDetailTile(
+                            icon: Icons.email_outlined,
+                            label: 'Email Address',
+                            value: profile.email,
+                          ),
+                          ProfileDetailTile(
+                            icon: Icons.phone_outlined,
+                            label: 'Phone Number',
+                            value: profile.phoneNumber,
+                          ),
+                          ProfileDetailTile(
+                            icon: Icons.business_outlined,
+                            label: 'Brand',
+                            value: profile.brand,
+                          ),
+                          ProfileDetailTile(
+                            icon: Icons.apartment_outlined,
+                            label: 'Centre',
+                            value: profile.centre,
+                          ),
+                          ProfileDetailTile(
+                            icon: Icons.calendar_today_outlined,
+                            label: 'Joining Date',
+                            value: controller.formatJoiningDate(
+                              profile.joiningDate,
+                            ),
+                          ),
+                          ProfileDetailTile(
+                            icon: Icons.supervisor_account_outlined,
+                            label: 'Reporting Manager',
+                            value: profile.reportManager,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          SafeArea(
-            top: false,
-            child: RefreshIndicator(
-              color: AppColors.black,
-              onRefresh: _onRefresh,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ProfileHeaderCard(
-                      name: _fullName,
-                      employeeId: _employeeId,
-                      email: _email,
-                      mobile: _mobile,
-                      completionPercent: _completionPercent,
-                    ),
-                    const SizedBox(height: 28),
-                    const ProfileSectionTitle(title: 'Employee Details'),
-                    ProfileDetailTile(
-                      icon: Icons.work_outline,
-                      label: 'Designation',
-                      value: _designation,
-                    ),
-                    ProfileDetailTile(
-                      icon: Icons.apartment_outlined,
-                      label: 'Department',
-                      value: _department,
-                    ),
-                    ProfileDetailTile(
-                      icon: Icons.supervisor_account_outlined,
-                      label: 'Reporting Manager',
-                      value: _reportingManager,
-                    ),
-                    ProfileDetailTile(
-                      icon: Icons.location_on_outlined,
-                      label: 'Office Location',
-                      value: _officeLocation,
-                    ),
-                    ProfileDetailTile(
-                      icon: Icons.login_rounded,
-                      label: 'Login Type',
-                      value: _loginType,
-                    ),
-                    const SizedBox(height: 20),
-                    const ProfileSectionTitle(title: 'Additional Information'),
-                    ProfileDetailTile(
-                      icon: Icons.verified_outlined,
-                      label: 'Employee Status',
-                      value: _employeeStatus,
-                    ),
-                    ProfileDetailTile(
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Joining Date',
-                      value: _joiningDate,
-                    ),
-                    ProfileDetailTile(
-                      icon: Icons.qr_code_2_outlined,
-                      label: 'Employee Code',
-                      value: _employeeCode,
-                    ),
-                    ProfileDetailTile(
-                      icon: Icons.map_outlined,
-                      label: 'Work Location',
-                      value: _workLocation,
-                    ),
-                    const SizedBox(height: 28),
-                    GradientButton(
-                      label: 'Edit Profile',
-                      onPressed: _onEditProfile,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+              ],
+            );
+          }),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileErrorState extends StatelessWidget {
+  const _ProfileErrorState({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.person_off_outlined,
+              size: 48,
+              color: AppColors.grey500,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.grey700,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton(
+              onPressed: onRetry,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.black,
+                side: const BorderSide(color: AppColors.grey300),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Retry',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

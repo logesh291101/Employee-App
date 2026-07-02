@@ -37,6 +37,8 @@ dependencies:
   firebase_core: ^4.11.0 
   firebase_remote_config: ^6.5.3
   shared_preferences: ^2.5.3
+  get: ^4.7.3
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +64,7 @@ flutter:
 
   assets:
     - assets/images/veda_group_logo.png
+    - shorebird.yaml
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

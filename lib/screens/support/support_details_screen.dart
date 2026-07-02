@@ -220,7 +220,9 @@ class _SupportDetailsScreenState extends State<SupportDetailsScreen> {
             _InfoRow(label: 'Attachment', value: attachment),
           _InfoRow(
             label: 'Submitted Date',
-            value: _request['submittedDate'] as String,
+            value: (_request['createdDate'] ??
+                    _request['submittedDate'] ??
+                    '—') as String,
           ),
           _InfoRow(label: 'Priority', value: _request['priority'] as String),
           _InfoRow(label: 'Current Status', value: _request['status'] as String),

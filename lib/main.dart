@@ -1,8 +1,10 @@
 import 'package:employee_app/core/theme/app_theme.dart';
-import 'package:employee_app/screens/splash/splash_screen.dart';
+import 'package:employee_app/core/routes/app_pages.dart';
+import 'package:employee_app/core/routes/app_routes.dart';
 import 'package:employee_app/services/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,11 +28,12 @@ class EmployeeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'VEDA GROUP',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const SplashScreen(),
+      initialRoute: AppRoutes.splash,
+      getPages: AppPages.pages,
     );
   }
 }

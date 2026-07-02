@@ -1,46 +1,12 @@
 import 'package:employee_app/core/theme/app_colors.dart';
-import 'package:employee_app/screens/forgot_password/forgot_password_screen.dart';
-import 'package:employee_app/screens/home/home_screen.dart';
-import 'package:employee_app/screens/signup/sign_up_screen.dart';
+import 'package:employee_app/viewmodels/login_viewmodel.dart';
 import 'package:employee_app/widgets/app_text_field.dart';
-import 'package:employee_app/widgets/auth/auth_page_route.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends GetView<LoginViewModel> {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _togglePasswordVisibility() {
-    setState(() => _obscurePassword = !_obscurePassword);
-  }
-
-  void _navigateToSignUp() {
-    Navigator.of(context).push(authPageRoute(const SignUpScreen()));
-  }
-
-  void _navigateToForgotPassword() {
-    Navigator.of(context).push(authPageRoute(const ForgotPasswordScreen()));
-  }
-
-  void _navigateToHome() {
-    Navigator.of(context).pushReplacement(authPageRoute(const HomeScreen()));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,37 +33,48 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 40),
                   _buildWelcomeSection(),
                   const SizedBox(height: 36),
-                  AppTextField(
-                    controller: _emailController,
-                    label: 'Email / Employee ID',
-                    hint: 'Enter your email or employee ID',
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
+                  Obx(
+                    () => AppTextField(
+                      controller: controller.emNoController,
+                      label: 'Employee Number',
+                      hint: 'Enter your employee number',
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      errorText: controller.emNoError.value,
+                      onChanged: controller.clearEmNoError,
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  AppTextField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    hint: 'Enter your password',
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    suffixIcon: IconButton(
-                      onPressed: _togglePasswordVisibility,
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: AppColors.grey500,
-                        size: 22,
+                  Obx(
+                    () => AppTextField(
+                      controller: controller.passwordController,
+                      label: 'Password',
+                      hint: 'Enter your password',
+                      obscureText: controller.obscurePassword.value,
+                      textInputAction: TextInputAction.done,
+                      errorText: controller.passwordError.value,
+                      onChanged: controller.clearPasswordError,
+                      onSubmitted: (_) => controller.login(),
+                      suffixIcon: IconButton(
+                        onPressed: controller.togglePasswordVisibility,
+                        icon: Icon(
+                          controller.obscurePassword.value
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.grey500,
+                          size: 22,
+                        ),
+                        tooltip: controller.obscurePassword.value
+                            ? 'Show password'
+                            : 'Hide password',
                       ),
-                      tooltip: _obscurePassword ? 'Show password' : 'Hide password',
                     ),
                   ),
                   const SizedBox(height: 12),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: _navigateToForgotPassword,
+                      onPressed: controller.navigateToForgotPassword,
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.black,
                         padding: const EdgeInsets.symmetric(
@@ -119,17 +96,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
-                  SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _navigateToHome,
-                      style: ElevatedButton.styleFrom(
-                        elevation: 2,
-                        shadowColor: AppColors.black.withOpacity(0.15),
+                  Obx(() {
+                    final isLoading = controller.isLoading.value;
+                    return SizedBox(
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : controller.login,
+                        style: ElevatedButton.styleFrom(
+                          elevation: 2,
+                          shadowColor: AppColors.black.withOpacity(0.15),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: AppColors.white,
+                                ),
+                              )
+                            : const Text('Sign In'),
                       ),
-                      child: const Text('Sign In'),
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -142,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       TextButton(
-                        onPressed: _navigateToSignUp,
+                        onPressed: controller.navigateToSignUp,
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.black,
                           padding: const EdgeInsets.symmetric(
@@ -186,24 +175,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildLogo(double width) {
     return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.asset(
-            'assets/images/veda_group_logo.png',
-            width: width,
-            fit: BoxFit.contain,
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          'assets/images/veda_group_logo.png',
+          width: width,
+          fit: BoxFit.contain,
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:employee_app/core/theme/app_colors.dart';
+import 'package:employee_app/bindings/support_binding.dart';
 import 'package:employee_app/screens/hierarchy/hierarchy_screen.dart';
 import 'package:employee_app/screens/home/add_post_screen.dart';
 import 'package:employee_app/screens/support/support_screen.dart';
@@ -7,7 +8,7 @@ import 'package:employee_app/screens/timesheet/timesheet_history_screen.dart';
 import 'package:employee_app/screens/home/widgets/attendance_status_card.dart';
 import 'package:employee_app/screens/home/widgets/dashboard_bottom_nav.dart';
 import 'package:employee_app/screens/home/widgets/home_app_bar.dart';
-import 'package:employee_app/screens/home/widgets/quick_actions_section.dart';
+import 'package:employee_app/screens/home/widgets/quick_action_tile.dart';
 import 'package:employee_app/screens/home/widgets/quick_actions_sheet.dart';
 import 'package:employee_app/screens/home/widgets/social_feed_card.dart';
 import 'package:employee_app/screens/profile/profile_screen.dart';
@@ -17,7 +18,9 @@ import 'package:employee_app/widgets/auth/auth_background.dart';
 import 'package:employee_app/widgets/auth/auth_page_route.dart';
 import 'package:employee_app/widgets/auth/auth_widgets.dart';
 import 'package:employee_app/widgets/gradient_button.dart';
+import 'package:employee_app/utils/shared_pref_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -31,8 +34,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
   bool _isRefreshing = false;
-
-  static const _employeeName = 'Logesh K';
+  String _employeeName = 'Employee';
 
   static const _quickActions = [
     QuickAction(label: 'Add Timesheet', icon: Icons.add_chart_outlined),
@@ -42,6 +44,20 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   List<Map<String, dynamic>> _feedPosts = _seedFeedPosts();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmployeeName();
+  }
+
+  Future<void> _loadEmployeeName() async {
+    final name = await SharedPrefHelper.getEmployeeName();
+    if (!mounted) return;
+    setState(() {
+      _employeeName = name.trim().isNotEmpty ? name.trim() : 'Employee';
+    });
+  }
 
   static List<Map<String, dynamic>> _seedFeedPosts() {
     final now = DateTime.now();
@@ -129,7 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (label == 'Hierarchy') {
       Navigator.of(context).push(authPageRoute(const HierarchyScreen()));
     } else if (label == 'Support') {
-      Navigator.of(context).push(authPageRoute(const SupportScreen()));
+      Get.to(
+        () => const SupportScreen(),
+        binding: SupportBinding(),
+      );
     }
   }
 
@@ -208,7 +227,10 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.transparent,
           appBar: HomeAppBar(
             onMenuTap: _showQuickActionsMenu,
-            onProfileTap: () => setState(() => _currentNavIndex = 3),
+            onNotificationTap: () {
+              HapticFeedback.lightImpact();
+              showAuthSnackBar(context, 'Notifications — coming soon');
+            },
           ),
           body: RefreshIndicator(
             color: AppColors.black,
@@ -224,14 +246,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          'Good day, $_employeeName 👋',
-                          style: GoogleFonts.inter(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.black,
-                            letterSpacing: -0.3,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Good Day,',
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.black,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _employeeName,
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.black,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
                         AttendanceStatusCard(

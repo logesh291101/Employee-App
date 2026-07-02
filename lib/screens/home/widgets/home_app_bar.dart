@@ -1,16 +1,15 @@
 import 'package:employee_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({
     super.key,
     this.onMenuTap,
-    this.onProfileTap,
+    this.onNotificationTap,
   });
 
   final VoidCallback? onMenuTap;
-  final VoidCallback? onProfileTap;
+  final VoidCallback? onNotificationTap;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -36,23 +35,11 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        GestureDetector(
-          onTap: onProfileTap,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.grey100,
-              child: Text(
-                'L',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.black,
-                ),
-              ),
-            ),
-          ),
+        IconButton(
+          onPressed: onNotificationTap,
+          icon: const Icon(Icons.notifications_outlined),
+          color: AppColors.black,
+          tooltip: 'Notifications',
         ),
       ],
     );
