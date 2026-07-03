@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '83307506429',
     projectId: 'employee-connect-43be6',
     storageBucket: 'employee-connect-43be6.firebasestorage.app',
-    iosBundleId: 'com.example.employeeApp',
+    iosBundleId: 'com.mobile.employeeapp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
