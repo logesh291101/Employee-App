@@ -15,27 +15,14 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordViewModel> {
       children: [
         AuthFormCard(
           title: 'Forgot Password?',
-          subtitle: 'Enter the Employee Number and Registered Email Address',
+          subtitle: 'Enter your registered email address to reset your password',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Obx(
                 () => AppTextField(
-                  controller: controller.emNoController,
-                  label: 'Employee Number',
-                  hint: 'Enter your employee number',
-                  prefixIcon: Icons.badge_outlined,
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.next,
-                  errorText: controller.emNoError.value,
-                  onChanged: controller.clearEmNoError,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Obx(
-                () => AppTextField(
                   controller: controller.emailController,
-                  label: 'Registered Email Address',
+                  label: 'Email Address',
                   hint: 'Enter your registered email address',
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,

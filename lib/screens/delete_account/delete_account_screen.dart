@@ -33,7 +33,7 @@ class DeleteAccountScreen extends GetView<DeleteAccountViewModel> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Enter your employee number and password to permanently delete your account.',
+                    'Enter your email address and password to permanently delete your account. This action cannot be undone.',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: AppColors.grey700,
@@ -43,14 +43,14 @@ class DeleteAccountScreen extends GetView<DeleteAccountViewModel> {
                   const SizedBox(height: 24),
                   Obx(
                     () => AppTextField(
-                      controller: controller.emNoController,
-                      label: 'Employee Number',
-                      hint: 'Enter your employee number',
-                      prefixIcon: Icons.badge_outlined,
-                      keyboardType: TextInputType.text,
+                      controller: controller.emailController,
+                      label: 'Email Address',
+                      hint: 'Enter your email address',
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      errorText: controller.emNoError.value,
-                      onChanged: controller.clearEmNoError,
+                      errorText: controller.emailError.value,
+                      onChanged: controller.clearEmailError,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -83,7 +83,7 @@ class DeleteAccountScreen extends GetView<DeleteAccountViewModel> {
                   const SizedBox(height: 32),
                   Obx(
                     () => GradientButton(
-                      label: 'Submit',
+                      label: 'Delete Account',
                       isLoading: controller.isLoading.value,
                       onPressed:
                           controller.isLoading.value ? null : _onSubmit,

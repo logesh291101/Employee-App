@@ -1,17 +1,17 @@
 class ChangePasswordRequest {
   const ChangePasswordRequest({
-    required this.emNo,
+    required this.email,
     required this.currentPassword,
     required this.newPassword,
   });
 
-  final String emNo;
+  final String email;
   final String currentPassword;
   final String newPassword;
 
   Map<String, dynamic> toJson() {
     return {
-      'emNo': emNo,
+      'email': email,
       'currentPassword': currentPassword,
       'newPassword': newPassword,
     };

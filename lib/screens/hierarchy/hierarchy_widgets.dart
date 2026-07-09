@@ -2,118 +2,6 @@ import 'package:employee_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class HierarchyBreadcrumb extends StatelessWidget {
-  const HierarchyBreadcrumb({super.key, required this.segments});
-
-  final List<String> segments;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (var i = 0; i < segments.length; i++) ...[
-            if (i > 0) ...[
-              const SizedBox(width: 6),
-              Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.grey500),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              segments[i],
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: i == segments.length - 1
-                    ? FontWeight.w600
-                    : FontWeight.w500,
-                color: i == segments.length - 1
-                    ? AppColors.black
-                    : AppColors.grey700,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class HierarchySearchBar extends StatefulWidget {
-  const HierarchySearchBar({
-    super.key,
-    required this.controller,
-    required this.hintText,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final String hintText;
-  final ValueChanged<String> onChanged;
-
-  @override
-  State<HierarchySearchBar> createState() => _HierarchySearchBarState();
-}
-
-class _HierarchySearchBarState extends State<HierarchySearchBar> {
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onTextChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onTextChanged);
-    super.dispose();
-  }
-
-  void _onTextChanged() => setState(() {});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      onChanged: widget.onChanged,
-      style: GoogleFonts.inter(
-        fontSize: 15,
-        fontWeight: FontWeight.w500,
-        color: AppColors.black,
-      ),
-      decoration: InputDecoration(
-        hintText: widget.hintText,
-        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.grey500),
-        suffixIcon: widget.controller.text.isNotEmpty
-            ? IconButton(
-                onPressed: () {
-                  widget.controller.clear();
-                  widget.onChanged('');
-                },
-                icon: const Icon(Icons.close_rounded, color: AppColors.grey500),
-              )
-            : null,
-        contentPadding: const EdgeInsets.symmetric(vertical: 12),
-      ),
-    );
-  }
-}
-
-List<Map<String, dynamic>> filterHierarchyMembers(
-  List<Map<String, dynamic>> members,
-  String query,
-) {
-  final trimmed = query.trim().toLowerCase();
-  if (trimmed.isEmpty) return members;
-
-  return members.where((member) {
-    final name = (member['name'] as String).toLowerCase();
-    final id = (member['id'] as String).toLowerCase();
-    final role = (member['role'] as String).toLowerCase();
-    return name.contains(trimmed) ||
-        id.contains(trimmed) ||
-        role.contains(trimmed);
-  }).toList();
-}
-
 String hierarchyInitials(String name) {
   return name
       .split(' ')
@@ -124,128 +12,29 @@ String hierarchyInitials(String name) {
       .toUpperCase();
 }
 
-class HierarchyOwnerCard extends StatelessWidget {
-  const HierarchyOwnerCard({
+class HierarchyEmployeeCard extends StatelessWidget {
+  const HierarchyEmployeeCard({
     super.key,
-    required this.member,
-    required this.onTap,
+    required this.name,
+    this.role,
+    this.email,
+    this.profilePic,
+    this.hasChildren = false,
+    this.isExpanded = false,
+    this.onTap,
   });
 
-  final Map<String, dynamic> member;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = member['name'] as String;
-
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey300),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withOpacity(0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Text(
-                  member['role'] as String,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grey700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                CircleAvatar(
-                  radius: 36,
-                  backgroundColor: AppColors.grey100,
-                  child: Text(
-                    hierarchyInitials(name),
-                    style: GoogleFonts.inter(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  name,
-                  style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.black,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  member['email'] as String,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.grey700,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.black,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'View Reporting Members',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class HierarchyMemberCard extends StatelessWidget {
-  const HierarchyMemberCard({
-    super.key,
-    required this.member,
-    required this.onTap,
-    this.reportLabel,
-    this.showChevron = true,
-  });
-
-  final Map<String, dynamic> member;
+  final String name;
+  final String? role;
+  final String? email;
+  final String? profilePic;
+  final bool hasChildren;
+  final bool isExpanded;
   final VoidCallback? onTap;
-  final String? reportLabel;
-  final bool showChevron;
 
   @override
   Widget build(BuildContext context) {
-    final name = member['name'] as String;
-    final directReports = member['directReports'] as int?;
+    final pic = profilePic?.trim();
 
     return Material(
       color: AppColors.white,
@@ -259,7 +48,7 @@ class HierarchyMemberCard extends StatelessWidget {
             border: Border.all(color: AppColors.grey300),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withOpacity(0.04),
+                color: AppColors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
@@ -268,19 +57,9 @@ class HierarchyMemberCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: AppColors.grey100,
-                  child: Text(
-                    hierarchyInitials(name),
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ),
+                _ProfileAvatar(name: name, profilePic: pic),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -294,55 +73,120 @@ class HierarchyMemberCard extends StatelessWidget {
                           color: AppColors.black,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        member['role'] as String,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.grey700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        member['id'] as String,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.grey500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        member['email'] as String,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.grey700,
-                        ),
-                      ),
-                      if (reportLabel != null && directReports != null) ...[
-                        const SizedBox(height: 8),
+                      if (role != null && role!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 4),
                         Text(
-                          '$reportLabel : $directReports',
+                          role!,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.grey700,
+                          ),
+                        ),
+                      ],
+                      if (email != null && email!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          email!,
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.grey900,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.grey700,
                           ),
+                        ),
+                      ],
+                      if (hasChildren) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Icon(
+                              isExpanded
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 18,
+                              color: AppColors.black,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isExpanded
+                                  ? 'Hide Reporting Members'
+                                  : 'View Reporting Members',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.black,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ],
                   ),
                 ),
-                if (showChevron)
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppColors.grey500,
-                  ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({
+    required this.name,
+    this.profilePic,
+  });
+
+  final String name;
+  final String? profilePic;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasImage = profilePic != null && profilePic!.isNotEmpty;
+
+    if (hasImage) {
+      return ClipOval(
+        child: Image.network(
+          profilePic!,
+          width: 52,
+          height: 52,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _initialsAvatar(),
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return SizedBox(
+              width: 52,
+              height: 52,
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.grey500.withValues(alpha: 0.8),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    return _initialsAvatar();
+  }
+
+  Widget _initialsAvatar() {
+    return CircleAvatar(
+      radius: 26,
+      backgroundColor: AppColors.grey100,
+      child: Text(
+        hierarchyInitials(name),
+        style: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: AppColors.black,
         ),
       ),
     );

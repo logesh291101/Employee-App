@@ -1,5 +1,10 @@
 import 'package:employee_app/core/theme/app_colors.dart';
+import 'package:employee_app/bindings/eip_binding.dart';
+import 'package:employee_app/bindings/hierarchy_binding.dart';
+import 'package:employee_app/bindings/add_timesheet_binding.dart';
+import 'package:employee_app/bindings/timesheet_history_binding.dart';
 import 'package:employee_app/bindings/support_binding.dart';
+import 'package:employee_app/screens/eip/employee_impact_points_screen.dart';
 import 'package:employee_app/screens/hierarchy/hierarchy_screen.dart';
 import 'package:employee_app/screens/home/add_post_screen.dart';
 import 'package:employee_app/screens/support/support_screen.dart';
@@ -41,6 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
     QuickAction(label: 'Timesheet History', icon: Icons.history_rounded),
     QuickAction(label: 'Hierarchy', icon: Icons.account_tree_outlined),
     QuickAction(label: 'Support', icon: Icons.support_agent_outlined),
+    QuickAction(
+      label: 'EIP',
+      icon: Icons.stars_rounded,
+    ),
   ];
 
   List<Map<String, dynamic>> _feedPosts = _seedFeedPosts();
@@ -137,17 +146,29 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onQuickActionTap(QuickAction action) {
     final label = action.label.trim();
     if (label == 'Add Timesheet') {
-      Navigator.of(context).push(authPageRoute(const AddTimesheetScreen()));
+      Get.to(
+        () => const AddTimesheetScreen(),
+        binding: AddTimesheetBinding(),
+      );
     } else if (label == 'Timesheet History') {
-      Navigator.of(context).push(
-        authPageRoute(const TimesheetHistoryScreen()),
+      Get.to(
+        () => const TimesheetHistoryScreen(),
+        binding: TimesheetHistoryBinding(),
       );
     } else if (label == 'Hierarchy') {
-      Navigator.of(context).push(authPageRoute(const HierarchyScreen()));
+      Get.to(
+        () => const HierarchyScreen(),
+        binding: HierarchyBinding(),
+      );
     } else if (label == 'Support') {
       Get.to(
         () => const SupportScreen(),
         binding: SupportBinding(),
+      );
+    } else if (label == 'EIP') {
+      Get.to(
+        () => const EmployeeImpactPointsScreen(),
+        binding: EIPBinding(),
       );
     }
   }

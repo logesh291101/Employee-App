@@ -9,12 +9,12 @@ class DeleteAccountRepository {
   final DeleteAccountService _deleteAccountService;
 
   Future<DeleteAccountResponse> deleteAccount({
-    required String emNo,
+    required String email,
     required String password,
   }) async {
     try {
       return await _deleteAccountService.deleteAccount(
-        DeleteAccountRequest(emNo: emNo, password: password),
+        DeleteAccountRequest(email: email, password: password),
       );
     } on ApiException {
       rethrow;

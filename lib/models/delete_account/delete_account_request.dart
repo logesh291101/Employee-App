@@ -1,15 +1,15 @@
 class DeleteAccountRequest {
   const DeleteAccountRequest({
-    required this.emNo,
+    required this.email,
     required this.password,
   });
 
-  final String emNo;
+  final String email;
   final String password;
 
   Map<String, dynamic> toJson() {
     return {
-      'emNo': emNo,
+      'email': email,
       'password': password,
     };
   }

@@ -95,12 +95,20 @@ class SharedPrefHelper {
     return _instance.getString(RemoteConfigKeys.liveUrl) ?? '';
   }
 
-  static Future<String> getEmNo() async {
+  static Future<String> getEmployeeNumber() async {
     await init();
     final prefs = _instance;
     return prefs.getString(EmployeeSessionKeys.employeeNumber) ??
         prefs.getString(EmployeeSessionKeys.legacyEmNo) ??
         '';
+  }
+
+  /// Returns the logged-in employee number stored after login.
+  static Future<String> getEmNo() => getEmployeeNumber();
+
+  static Future<String> getEmail() async {
+    await init();
+    return _instance.getString(EmployeeSessionKeys.email) ?? '';
   }
 
   /// Returns the logged-in employee display name stored after login.

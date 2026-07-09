@@ -9,12 +9,11 @@ class ForgotPasswordRepository {
   final ForgotPasswordService _forgotPasswordService;
 
   Future<ForgotPasswordResponse> forgotPassword({
-    required String emNo,
     required String email,
   }) async {
     try {
       return await _forgotPasswordService.forgotPassword(
-        ForgotPasswordRequest(emNo: emNo, email: email),
+        ForgotPasswordRequest(email: email),
       );
     } on ApiException {
       rethrow;

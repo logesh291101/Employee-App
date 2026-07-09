@@ -5,7 +5,6 @@ import 'package:employee_app/screens/profile/widgets/profile_app_bar.dart';
 import 'package:employee_app/screens/work_tracking/widgets/work_timeline_tile.dart';
 import 'package:employee_app/widgets/auth/auth_background.dart';
 import 'package:employee_app/widgets/auth/auth_widgets.dart';
-import 'package:employee_app/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,8 +22,6 @@ class WorkTrackingDashboardScreen extends StatefulWidget {
 class _WorkTrackingDashboardScreenState
     extends State<WorkTrackingDashboardScreen> {
   bool _isRefreshing = false;
-  bool _isBreakActionLoading = false;
-  bool _isOnBreak = false;
   bool _showEarlyLogout = true;
 
   String _loginTime = '09:00 AM';
@@ -35,27 +32,9 @@ class _WorkTrackingDashboardScreenState
   String _productiveHours = '06h 45m';
   String _remainingHours = '45m';
 
-  String? _breakStartTime;
-  String? _breakEndTime;
-
   static const _requiredLogout = '06:00 PM';
   static const _actualLogout = '04:45 PM';
   static const _earlyLogoutDuration = '1h 15m';
-
-  final List<Map<String, String>> _breakHistory = [
-    {
-      'number': '1',
-      'start': '11:00 AM',
-      'end': '11:15 AM',
-      'duration': '15m',
-    },
-    {
-      'number': '2',
-      'start': '01:30 PM',
-      'end': '01:45 PM',
-      'duration': '15m',
-    },
-  ];
 
   static const _timeline = [
     WorkTimelineEntry(
@@ -91,13 +70,6 @@ class _WorkTrackingDashboardScreenState
     ),
   ];
 
-  String _formatTime(DateTime date) {
-    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-    final minute = date.minute.toString().padLeft(2, '0');
-    final period = date.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
-  }
-
   Future<void> _onRefresh() async {
     setState(() => _isRefreshing = true);
     HapticFeedback.lightImpact();
@@ -105,43 +77,6 @@ class _WorkTrackingDashboardScreenState
     if (!mounted) return;
     setState(() => _isRefreshing = false);
     showAuthSnackBar(context, 'Work tracking data refreshed');
-  }
-
-  Future<void> _startBreak() async {
-    if (_isOnBreak) return;
-    HapticFeedback.mediumImpact();
-    setState(() => _isBreakActionLoading = true);
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    setState(() {
-      _isBreakActionLoading = false;
-      _isOnBreak = true;
-      _breakStartTime = _formatTime(DateTime.now());
-      _breakEndTime = null;
-      _currentStatus = 'On Break';
-    });
-    showAuthSnackBar(context, 'Break started');
-  }
-
-  Future<void> _endBreak() async {
-    if (!_isOnBreak) return;
-    HapticFeedback.mediumImpact();
-    setState(() => _isBreakActionLoading = true);
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    setState(() {
-      _isBreakActionLoading = false;
-      _isOnBreak = false;
-      _breakEndTime = _formatTime(DateTime.now());
-      _currentStatus = 'Working';
-      _breakHistory.add({
-        'number': '${_breakHistory.length + 1}',
-        'start': _breakStartTime ?? '--',
-        'end': _breakEndTime ?? '--',
-        'duration': '10m',
-      });
-    });
-    showAuthSnackBar(context, 'Break ended');
   }
 
   @override
@@ -188,8 +123,6 @@ class _WorkTrackingDashboardScreenState
                     _buildTodaySummaryCard(),
                     const SizedBox(height: 20),
                     _buildWorkDurationCard(),
-                    const SizedBox(height: 20),
-                    _buildBreakTrackingSection(),
                     if (_showEarlyLogout) ...[
                       const SizedBox(height: 20),
                       _buildEarlyLogoutCard(),
@@ -326,139 +259,6 @@ class _WorkTrackingDashboardScreenState
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBreakTrackingSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.grey300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Break Tracking',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.black,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: GradientButton(
-                  label: 'Start Break',
-                  height: 48,
-                  isLoading: _isBreakActionLoading && !_isOnBreak,
-                  onPressed: _isOnBreak || _isBreakActionLoading
-                      ? null
-                      : _startBreak,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: !_isOnBreak || _isBreakActionLoading
-                      ? null
-                      : _endBreak,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                    foregroundColor: AppColors.black,
-                    side: const BorderSide(color: AppColors.black),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  child: Text(
-                    'End Break',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _MetricRow(
-            label: 'Break Start Time',
-            value: _breakStartTime ?? (_isOnBreak ? 'In Progress' : '--'),
-          ),
-          const SizedBox(height: 8),
-          _MetricRow(
-            label: 'Break End Time',
-            value: _breakEndTime ?? '--',
-          ),
-          const SizedBox(height: 8),
-          _MetricRow(label: 'Total Break Duration', value: _totalBreakDuration),
-          const SizedBox(height: 16),
-          Text(
-            'Break History',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey900,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ..._breakHistory.map(_buildBreakHistoryRow),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBreakHistoryRow(Map<String, String> item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey300),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                '#${item['number']}',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '${item['start']} – ${item['end']}',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Text(
-            item['duration']!,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.black,
-            ),
           ),
         ],
       ),

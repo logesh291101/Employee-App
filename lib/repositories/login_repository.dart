@@ -10,12 +10,12 @@ class LoginRepository {
   final LoginService _loginService;
 
   Future<LoginResponse> login({
-    required String emNo,
+    required String email,
     required String password,
   }) async {
     try {
       final response = await _loginService.login(
-        LoginRequest(emNo: emNo, password: password),
+        LoginRequest(email: email, password: password),
       );
 
       final employeeData = response.data;

@@ -9,14 +9,14 @@ class ChangePasswordRepository {
   final ChangePasswordService _changePasswordService;
 
   Future<ChangePasswordResponse> changePassword({
-    required String emNo,
+    required String email,
     required String currentPassword,
     required String newPassword,
   }) async {
     try {
       return await _changePasswordService.changePassword(
         ChangePasswordRequest(
-          emNo: emNo,
+          email: email,
           currentPassword: currentPassword,
           newPassword: newPassword,
         ),

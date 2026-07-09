@@ -11,7 +11,7 @@ class ChangePasswordViewModel extends GetxController {
 
   final ChangePasswordRepository _changePasswordRepository;
 
-  final emNoController = TextEditingController();
+  final emailController = TextEditingController();
   final currentPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -21,7 +21,7 @@ class ChangePasswordViewModel extends GetxController {
   final RxBool obscureNewPassword = true.obs;
   final RxBool obscureConfirmPassword = true.obs;
 
-  final RxnString emNoError = RxnString();
+  final RxnString emailError = RxnString();
   final RxnString currentPasswordError = RxnString();
   final RxnString newPasswordError = RxnString();
   final RxnString confirmPasswordError = RxnString();
@@ -29,23 +29,23 @@ class ChangePasswordViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _prefillEmNo();
+    _prefillEmail();
   }
 
-  Future<void> _prefillEmNo() async {
-    final emNo = await SharedPrefHelper.getEmNo();
-    if (emNo.isNotEmpty) {
-      emNoController.text = emNo;
+  Future<void> _prefillEmail() async {
+    final email = await SharedPrefHelper.getEmail();
+    if (email.isNotEmpty) {
+      emailController.text = email;
     }
   }
 
   bool _validate() {
-    final emNo = emNoController.text.trim();
+    final email = emailController.text.trim();
     final currentPassword = currentPasswordController.text.trim();
     final newPassword = newPasswordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
-    emNoError.value = emNo.isEmpty ? 'Employee number is required' : null;
+    emailError.value = email.isEmpty ? 'Email address is required' : null;
     currentPasswordError.value =
         currentPassword.isEmpty ? 'Current password is required' : null;
 
@@ -63,7 +63,7 @@ class ChangePasswordViewModel extends GetxController {
       confirmPasswordError.value = null;
     }
 
-    return emNoError.value == null &&
+    return emailError.value == null &&
         currentPasswordError.value == null &&
         newPasswordError.value == null &&
         confirmPasswordError.value == null;
@@ -76,7 +76,7 @@ class ChangePasswordViewModel extends GetxController {
 
     try {
       final response = await _changePasswordRepository.changePassword(
-        emNo: emNoController.text.trim(),
+        email: emailController.text.trim(),
         currentPassword: currentPasswordController.text.trim(),
         newPassword: newPasswordController.text.trim(),
       );
@@ -111,7 +111,7 @@ class ChangePasswordViewModel extends GetxController {
     obscureConfirmPassword.value = !obscureConfirmPassword.value;
   }
 
-  void clearEmNoError(String _) => emNoError.value = null;
+  void clearEmailError(String _) => emailError.value = null;
 
   void clearCurrentPasswordError(String _) =>
       currentPasswordError.value = null;
@@ -123,7 +123,7 @@ class ChangePasswordViewModel extends GetxController {
 
   @override
   void onClose() {
-    emNoController.dispose();
+    emailController.dispose();
     currentPasswordController.dispose();
     newPasswordController.dispose();
     confirmPasswordController.dispose();

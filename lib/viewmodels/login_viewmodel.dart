@@ -10,27 +10,38 @@ class LoginViewModel extends GetxController {
 
   final LoginRepository _loginRepository;
 
-  final emNoController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   final RxBool isLoading = false.obs;
   final RxBool obscurePassword = true.obs;
-  final RxnString emNoError = RxnString();
+  final RxnString emailError = RxnString();
   final RxnString passwordError = RxnString();
 
   void togglePasswordVisibility() {
     obscurePassword.value = !obscurePassword.value;
   }
 
+  bool _isValidEmail(String value) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
+  }
+
   bool _validate() {
-    final emNo = emNoController.text.trim();
+    final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    emNoError.value = emNo.isEmpty ? 'Employee number is required' : null;
+    if (email.isEmpty) {
+      emailError.value = 'Email address is required';
+    } else if (!_isValidEmail(email)) {
+      emailError.value = 'Please enter a valid email address';
+    } else {
+      emailError.value = null;
+    }
+
     passwordError.value =
         password.isEmpty ? 'Password is required' : null;
 
-    return emNoError.value == null && passwordError.value == null;
+    return emailError.value == null && passwordError.value == null;
   }
 
   Future<void> login() async {
@@ -40,7 +51,7 @@ class LoginViewModel extends GetxController {
 
     try {
       final response = await _loginRepository.login(
-        emNo: emNoController.text.trim(),
+        email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
@@ -70,13 +81,13 @@ class LoginViewModel extends GetxController {
     Get.toNamed(AppRoutes.forgotPassword);
   }
 
-  void clearEmNoError(String _) => emNoError.value = null;
+  void clearEmailError(String _) => emailError.value = null;
 
   void clearPasswordError(String _) => passwordError.value = null;
 
   @override
   void onClose() {
-    emNoController.dispose();
+    emailController.dispose();
     passwordController.dispose();
     super.onClose();
   }

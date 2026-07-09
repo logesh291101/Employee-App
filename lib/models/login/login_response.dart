@@ -59,8 +59,8 @@ class LoginResponse {
           ? json['status'] as int
           : int.tryParse('${json['status']}') ?? 0,
       message: json['message'] as String? ?? '',
-      data: dataJson is Map<String, dynamic>
-          ? LoginEmployeeData.fromJson(dataJson)
+      data: dataJson is Map
+          ? LoginEmployeeData.fromJson(Map<String, dynamic>.from(dataJson))
           : null,
     );
   }

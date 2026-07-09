@@ -10,11 +10,9 @@ class ForgotPasswordViewModel extends GetxController {
 
   final ForgotPasswordRepository _forgotPasswordRepository;
 
-  final emNoController = TextEditingController();
   final emailController = TextEditingController();
 
   final RxBool isLoading = false.obs;
-  final RxnString emNoError = RxnString();
   final RxnString emailError = RxnString();
 
   bool _isValidEmail(String value) {
@@ -22,20 +20,17 @@ class ForgotPasswordViewModel extends GetxController {
   }
 
   bool _validate() {
-    final emNo = emNoController.text.trim();
     final email = emailController.text.trim();
 
-    emNoError.value = emNo.isEmpty ? 'Employee number is required' : null;
-
     if (email.isEmpty) {
-      emailError.value = 'Registered email address is required';
+      emailError.value = 'Email address is required';
     } else if (!_isValidEmail(email)) {
       emailError.value = 'Please enter a valid email address';
     } else {
       emailError.value = null;
     }
 
-    return emNoError.value == null && emailError.value == null;
+    return emailError.value == null;
   }
 
   Future<void> sendMail() async {
@@ -45,7 +40,6 @@ class ForgotPasswordViewModel extends GetxController {
 
     try {
       final response = await _forgotPasswordRepository.forgotPassword(
-        emNo: emNoController.text.trim(),
         email: emailController.text.trim(),
       );
 
@@ -54,7 +48,7 @@ class ForgotPasswordViewModel extends GetxController {
             ? response.message
             : 'Password sent successfully',
       );
-      Get.offAllNamed(AppRoutes.login);
+      emailController.clear();
     } on ApiException catch (error) {
       AppSnackbar.show(error.message, isError: true);
     } catch (_) {
@@ -71,13 +65,10 @@ class ForgotPasswordViewModel extends GetxController {
     Get.offAllNamed(AppRoutes.login);
   }
 
-  void clearEmNoError(String _) => emNoError.value = null;
-
   void clearEmailError(String _) => emailError.value = null;
 
   @override
   void onClose() {
-    emNoController.dispose();
     emailController.dispose();
     super.onClose();
   }
