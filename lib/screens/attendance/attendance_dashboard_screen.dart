@@ -1,12 +1,10 @@
+import 'package:employee_app/bindings/attendance_history_binding.dart';
 import 'package:employee_app/core/theme/app_colors.dart';
-import 'package:employee_app/screens/attendance/attendance_correction_request_screen.dart';
 import 'package:employee_app/screens/attendance/attendance_history_screen.dart';
 import 'package:employee_app/screens/attendance/widgets/attendance_summary_metrics_card.dart';
 import 'package:employee_app/screens/profile/widgets/profile_app_bar.dart';
-import 'package:employee_app/screens/work_tracking/break_management_screen.dart';
 import 'package:employee_app/viewmodels/attendance_dashboard_viewmodel.dart';
 import 'package:employee_app/widgets/auth/auth_background.dart';
-import 'package:employee_app/widgets/auth/auth_page_route.dart';
 import 'package:employee_app/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -117,13 +115,18 @@ class AttendanceDashboardScreen extends GetView<AttendanceDashboardViewModel> {
           Align(
             alignment: Alignment.centerRight,
             child: _ViewHistoryButton(
-              onPressed: () => Navigator.of(context).push(
-                authPageRoute(const AttendanceHistoryScreen()),
-              ),
+              onPressed: _openAttendanceHistory,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _openAttendanceHistory() {
+    Get.to(
+      () => const AttendanceHistoryScreen(),
+      binding: AttendanceHistoryBinding(),
     );
   }
 
@@ -206,9 +209,7 @@ class AttendanceDashboardScreen extends GetView<AttendanceDashboardViewModel> {
           Align(
             alignment: Alignment.centerRight,
             child: _ViewHistoryButton(
-              onPressed: () => Navigator.of(context).push(
-                authPageRoute(const BreakManagementScreen()),
-              ),
+              onPressed: _openAttendanceHistory,
             ),
           ),
         ],

@@ -56,7 +56,7 @@ class DeleteAccountService {
     final normalized = liveUrl.trim().endsWith('/')
         ? liveUrl.trim()
         : '${liveUrl.trim()}/';
-    return Uri.parse('${normalized}Employee-Connect/profile/deleteaccount');
+    return Uri.parse('${normalized}profile/deleteaccount');
   }
 
   DeleteAccountResponse _handleResponse(http.Response response) {

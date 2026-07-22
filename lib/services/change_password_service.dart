@@ -56,7 +56,7 @@ class ChangePasswordService {
     final normalized = liveUrl.trim().endsWith('/')
         ? liveUrl.trim()
         : '${liveUrl.trim()}/';
-    return Uri.parse('${normalized}Employee-Connect/profile/changePassword');
+    return Uri.parse('${normalized}profile/changePassword');
   }
 
   ChangePasswordResponse _handleResponse(http.Response response) {

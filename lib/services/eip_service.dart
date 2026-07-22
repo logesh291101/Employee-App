@@ -30,7 +30,7 @@ class EIPService {
 
     final uri = _buildUri(
       liveUrl,
-      'Employee-Connect/employee-impact-point',
+      'employee-impact-point',
     ).replace(queryParameters: {'staff_id': staffId});
 
     try {

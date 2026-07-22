@@ -54,7 +54,7 @@ class LoginService {
     final normalized = liveUrl.trim().endsWith('/')
         ? liveUrl.trim()
         : '${liveUrl.trim()}/';
-    return Uri.parse('${normalized}Employee-Connect/profile/login');
+    return Uri.parse('${normalized}profile/login');
   }
 
   LoginResponse _handleResponse(http.Response response) {

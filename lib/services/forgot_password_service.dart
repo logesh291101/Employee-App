@@ -56,7 +56,7 @@ class ForgotPasswordService {
     final normalized = liveUrl.trim().endsWith('/')
         ? liveUrl.trim()
         : '${liveUrl.trim()}/';
-    return Uri.parse('${normalized}Employee-Connect/profile/forgetPassword');
+    return Uri.parse('${normalized}profile/forgetPassword');
   }
 
   ForgotPasswordResponse _handleResponse(http.Response response) {

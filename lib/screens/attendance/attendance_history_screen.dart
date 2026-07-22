@@ -1,147 +1,24 @@
 import 'package:employee_app/core/theme/app_colors.dart';
-import 'package:employee_app/screens/attendance/widgets/attendance_empty_state.dart';
-import 'package:employee_app/screens/attendance/widgets/attendance_record_card.dart';
-import 'package:employee_app/screens/attendance/widgets/attendance_status_badge.dart';
+import 'package:employee_app/models/attendance/work_time_history_model.dart';
+import 'package:employee_app/screens/timesheet/widgets/timesheet_history_shimmer.dart';
+import 'package:employee_app/viewmodels/attendance_history_viewmodel.dart';
 import 'package:employee_app/widgets/auth/auth_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AttendanceHistoryScreen extends StatefulWidget {
+class AttendanceHistoryScreen extends GetView<AttendanceHistoryViewModel> {
   const AttendanceHistoryScreen({super.key});
 
   @override
-  State<AttendanceHistoryScreen> createState() =>
-      _AttendanceHistoryScreenState();
-}
-
-class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
-  String _selectedMonth = 'June 2026';
-  String _statusFilter = 'All';
-  bool _showEmptyResults = false;
-
-  final _allRecords = const [
-    AttendanceRecordData(
-      date: '08 June 2026',
-      day: 'Monday',
-      checkIn: '09:05 AM',
-      checkOut: '06:15 PM',
-      workingHours: '09:10',
-      status: AttendanceDayStatus.present,
-    ),
-    AttendanceRecordData(
-      date: '07 June 2026',
-      day: 'Sunday',
-      checkIn: '--',
-      checkOut: '--',
-      workingHours: '--',
-      status: AttendanceDayStatus.weekOff,
-    ),
-    AttendanceRecordData(
-      date: '06 June 2026',
-      day: 'Saturday',
-      checkIn: '--',
-      checkOut: '--',
-      workingHours: '--',
-      status: AttendanceDayStatus.weekOff,
-    ),
-    AttendanceRecordData(
-      date: '05 June 2026',
-      day: 'Friday',
-      checkIn: '09:30 AM',
-      checkOut: '01:30 PM',
-      workingHours: '04:00',
-      status: AttendanceDayStatus.halfDay,
-    ),
-    AttendanceRecordData(
-      date: '04 June 2026',
-      day: 'Thursday',
-      checkIn: '09:02 AM',
-      checkOut: '06:10 PM',
-      workingHours: '09:08',
-      status: AttendanceDayStatus.present,
-    ),
-    AttendanceRecordData(
-      date: '03 June 2026',
-      day: 'Wednesday',
-      checkIn: '--',
-      checkOut: '--',
-      workingHours: '--',
-      status: AttendanceDayStatus.holiday,
-    ),
-    AttendanceRecordData(
-      date: '02 June 2026',
-      day: 'Tuesday',
-      checkIn: '--',
-      checkOut: '--',
-      workingHours: '--',
-      status: AttendanceDayStatus.absent,
-    ),
-  ];
-
-  List<AttendanceRecordData> get _filteredRecords {
-    if (_showEmptyResults) return [];
-    if (_statusFilter == 'All') return _allRecords;
-    return _allRecords.where((r) {
-      switch (_statusFilter) {
-        case 'Present':
-          return r.status == AttendanceDayStatus.present;
-        case 'Absent':
-          return r.status == AttendanceDayStatus.absent;
-        case 'Half Day':
-          return r.status == AttendanceDayStatus.halfDay;
-        case 'Holiday':
-          return r.status == AttendanceDayStatus.holiday;
-        default:
-          return true;
-      }
-    }).toList();
-  }
-
-  Future<void> _pickDateRange() async {
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2025),
-      lastDate: DateTime(2027),
-      initialDateRange: DateTimeRange(
-        start: DateTime(2026, 6, 1),
-        end: DateTime(2026, 6, 8),
-      ),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.black,
-              onPrimary: AppColors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (range != null && mounted) {
-      HapticFeedback.selectionClick();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Date range: ${range.start.day}/${range.start.month} – '
-            '${range.end.day}/${range.end.month}',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final records = _filteredRecords;
-
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
@@ -155,7 +32,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
             color: AppColors.black,
           ),
         ),
-        centerTitle: true,
       ),
       body: Stack(
         children: [
@@ -163,140 +39,11 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           SafeArea(
             top: false,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildFilters(),
-                Expanded(
-                  child: records.isEmpty
-                      ? AttendanceEmptyState(
-                          icon: Icons.search_off_outlined,
-                          title: _showEmptyResults
-                              ? 'No Search Results'
-                              : 'No Attendance Records',
-                          message: _showEmptyResults
-                              ? 'Try adjusting your filters to find records.'
-                              : 'Your attendance history will appear here.',
-                          actionLabel: 'Clear Filters',
-                          onAction: () => setState(() {
-                            _statusFilter = 'All';
-                            _showEmptyResults = false;
-                          }),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                          itemCount: records.length,
-                          itemBuilder: (_, index) {
-                            return AttendanceRecordCard(record: records[index]);
-                          },
-                        ),
-                ),
+                _FilterSection(),
+                Expanded(child: _HistoryContent()),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilters() {
-    const filters = ['All', 'Present', 'Absent', 'Half Day', 'Holiday'];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _FilterCard(
-                  icon: Icons.date_range_outlined,
-                  label: 'Date Range',
-                  value: '01 Jun – 08 Jun 2026',
-                  onTap: _pickDateRange,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _FilterCard(
-                  icon: Icons.calendar_month_outlined,
-                  label: 'Month',
-                  value: _selectedMonth,
-                  onTap: () async {
-                    final months = [
-                      'April 2026',
-                      'May 2026',
-                      'June 2026',
-                      'July 2026',
-                    ];
-                    final selected = await showModalBottomSheet<String>(
-                      context: context,
-                      backgroundColor: AppColors.white,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      builder: (context) {
-                        return SafeArea(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: months
-                                .map(
-                                  (m) => ListTile(
-                                    title: Text(m),
-                                    trailing: m == _selectedMonth
-                                        ? const Icon(Icons.check,
-                                            color: AppColors.black)
-                                        : null,
-                                    onTap: () => Navigator.pop(context, m),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        );
-                      },
-                    );
-                    if (selected != null) {
-                      setState(() => _selectedMonth = selected);
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: filters.map((filter) {
-                final isSelected = _statusFilter == filter;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      HapticFeedback.selectionClick();
-                      setState(() {
-                        _statusFilter = filter;
-                        _showEmptyResults = filter == 'Absent' && false;
-                      });
-                    },
-                    selectedColor: AppColors.black,
-                    checkmarkColor: AppColors.white,
-                    labelStyle: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: isSelected ? AppColors.white : AppColors.grey900,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? AppColors.black : AppColors.grey300,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                );
-              }).toList(),
             ),
           ),
         ],
@@ -305,63 +52,450 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   }
 }
 
-class _FilterCard extends StatelessWidget {
-  const _FilterCard({
-    required this.icon,
+class _FilterSection extends GetView<AttendanceHistoryViewModel> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey300),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Obx(
+                    () => _DateFilterField(
+                      label: 'From Date',
+                      value: controller.formatDisplayDate(
+                        controller.fromDate.value,
+                      ),
+                      onTap: controller.pickFromDate,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Obx(
+                    () => _DateFilterField(
+                      label: 'To Date',
+                      value: controller.formatDisplayDate(
+                        controller.toDate.value,
+                      ),
+                      onTap: controller.pickToDate,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Obx(() {
+              final error = controller.dateValidationError.value;
+              if (error == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  error,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.error,
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 12),
+            Obx(
+              () => SizedBox(
+                height: 44,
+                child: FilledButton(
+                  onPressed: controller.isLoading.value ||
+                          controller.isRefreshing.value
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          controller.search();
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.black,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Search',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DateFilterField extends StatelessWidget {
+  const _DateFilterField({
     required this.label,
     required this.value,
     required this.onTap,
   });
 
-  final IconData icon;
   final String label;
   final String value;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.grey300),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: AppColors.grey500,
           ),
-          child: Row(
+        ),
+        const SizedBox(height: 6),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.grey300),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 16,
+                  color: AppColors.grey500,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    value,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: value == 'Select date'
+                          ? AppColors.grey500
+                          : AppColors.black,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HistoryContent extends GetView<AttendanceHistoryViewModel> {
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isLoading.value || controller.isRefreshing.value) {
+        return const TimesheetHistoryShimmer();
+      }
+
+      if (controller.errorMessage.value != null) {
+        return _MessageState(
+          message: controller.errorMessage.value!,
+          icon: Icons.error_outline_rounded,
+          actionLabel: 'Retry',
+          onAction: controller.fetchWorkingSummary,
+        );
+      }
+
+      if (controller.records.isEmpty) {
+        final message = controller.emptyMessage.value;
+        return _MessageState(
+          message: (message != null && message.trim().isNotEmpty)
+              ? message
+              : '',
+          icon: Icons.history_rounded,
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: controller.refreshWorkingSummary,
+        color: AppColors.black,
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          itemCount: controller.records.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            return _AttendanceHistoryCard(record: controller.records[index]);
+          },
+        ),
+      );
+    });
+  }
+}
+
+class _AttendanceHistoryCard extends StatelessWidget {
+  const _AttendanceHistoryCard({required this.record});
+
+  final WorkTimeHistoryData record;
+
+  @override
+  Widget build(BuildContext context) {
+    final dateLabel =
+        AttendanceHistoryViewModel.formatHistoryDate(record.date);
+    final checkOut = record.checkOut?.trim().isNotEmpty == true
+        ? record.checkOut!
+        : '';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey300),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Icon(icon, size: 18, color: AppColors.grey700),
-              const SizedBox(width: 8),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.grey50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.grey300),
+                ),
+                child: const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: AppColors.grey700,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      label,
+                      'Date',
                       style: GoogleFonts.inter(
-                        fontSize: 10,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
                         color: AppColors.grey500,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
-                      value,
+                      dateLabel,
                       style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.black,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 14),
+          Divider(height: 1, color: AppColors.grey300.withValues(alpha: 0.9)),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _MetricTile(
+                  icon: Icons.login_rounded,
+                  iconColor: const Color(0xFF2E7D32),
+                  label: 'Check In',
+                  value: record.checkIn,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MetricTile(
+                  icon: Icons.logout_rounded,
+                  iconColor: const Color(0xFFC62828),
+                  label: 'Check Out',
+                  value: checkOut,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _MetricTile(
+                  icon: Icons.schedule_rounded,
+                  iconColor: AppColors.grey700,
+                  label: 'Work Hours',
+                  value: record.workingHours,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MetricTile(
+                  icon: Icons.free_breakfast_outlined,
+                  iconColor: AppColors.grey700,
+                  label: 'Break Hours',
+                  value: record.breakHours,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 15, color: iconColor),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.grey500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MessageState extends StatelessWidget {
+  const _MessageState({
+    required this.message,
+    this.icon = Icons.history_rounded,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String message;
+  final IconData icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.grey300),
+              ),
+              child: Icon(icon, size: 40, color: AppColors.grey500),
+            ),
+            if (message.trim().isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.grey700,
+                  height: 1.45,
+                ),
+              ),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: onAction,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.black,
+                  side: const BorderSide(color: AppColors.black),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  actionLabel!,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

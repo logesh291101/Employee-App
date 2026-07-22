@@ -72,15 +72,15 @@
 
 import java.util.Properties
 //// Load keystore
-//val keystoreProperties = Properties()
-//val keystorePropertiesFile = rootProject.file("key.properties")
-//if (keystorePropertiesFile.exists()) {
-//    keystoreProperties.load(keystorePropertiesFile.inputStream())
-//}
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
 
 // Optional: fallback version
-val flutterVersionCode = project.findProperty("flutter.versionCode")?.toString()?.toInt() ?: 34
-val flutterVersionName = project.findProperty("flutter.versionName")?.toString() ?: "34 .0.0"
+val flutterVersionCode = project.findProperty("flutter.versionCode")?.toString()?.toInt() ?: 2
+val flutterVersionName = project.findProperty("flutter.versionName")?.toString() ?: "2.0.0"
 
 plugins {
     id("com.android.application")
@@ -113,26 +113,26 @@ android {
         multiDexEnabled = true
     }
 
-//    signingConfigs {
-//        create("release") {
-//            storeFile = file(keystoreProperties["storeFile"] as String)
-//            storePassword = keystoreProperties["storePassword"] as String
-//            keyAlias = keystoreProperties["keyAlias"] as String
-//            keyPassword = keystoreProperties["keyPassword"] as String
-//        }
-//    }
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+        }
+    }
 
     buildTypes {
-//        getByName("release") {
-//            signingConfig = signingConfigs.getByName("release")
-//            isMinifyEnabled = true
-//            isShrinkResources = true
-//            proguardFiles(
-//                getDefaultProguardFile("proguard-android-optimize.txt"),
-//                "proguard-rules.pro"
-//            )
-//            // ndk.debugSymbolLevel = "Full"
-//        }
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // ndk.debugSymbolLevel = "Full"
+        }
     }
 }
 
@@ -142,7 +142,7 @@ flutter {
 
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
-    implementation("com.google.firebase:firebase-analytics")
+    //implementation("com.google.firebase:firebase-analytics")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("androidx.multidex:multidex:2.0.1")
 }

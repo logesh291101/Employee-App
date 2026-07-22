@@ -1,5 +1,6 @@
 import 'package:employee_app/core/network/api_exception.dart';
 import 'package:employee_app/models/attendance/attendance_action_response.dart';
+import 'package:employee_app/models/attendance/work_time_history_model.dart';
 import 'package:employee_app/services/attendance_service.dart';
 
 class AttendanceRepository {
@@ -17,6 +18,22 @@ class AttendanceRepository {
         date: date,
         time: time,
         actionType: actionType,
+      );
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw ApiException('Something went wrong. Please try again.');
+    }
+  }
+
+  Future<WorkTimeHistoryModel> getWorkingSummary({
+    String? fromDate,
+    String? toDate,
+  }) async {
+    try {
+      return await _attendanceService.getWorkingSummary(
+        fromDate: fromDate,
+        toDate: toDate,
       );
     } on ApiException {
       rethrow;

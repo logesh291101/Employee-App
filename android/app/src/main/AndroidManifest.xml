@@ -2,7 +2,7 @@
     package="com.mobile.employeeapp">
     <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="employee_app"
+        android:label="Veda Group Employee Connect"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

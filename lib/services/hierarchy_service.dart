@@ -21,7 +21,7 @@ class HierarchyService {
       );
     }
 
-    final uri = _buildUri(liveUrl, 'Employee-Connect/employeeList/team');
+    final uri = _buildUri(liveUrl, 'employeeList/team');
 
     try {
       final response = await _client

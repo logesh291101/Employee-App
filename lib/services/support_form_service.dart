@@ -26,7 +26,7 @@ class SupportFormService {
       );
     }
 
-    final uri = _buildUri(liveUrl, 'Employee-Connect/supportform/departments');
+    final uri = _buildUri(liveUrl, 'supportform/departments');
 
     try {
       final response = await _client
@@ -59,7 +59,7 @@ class SupportFormService {
         'Server URL is not configured. Please restart the app and try again.',
       );
     }
-    final uri = _buildUri(liveUrl, 'Employee-Connect/supportform/staffs');
+    final uri = _buildUri(liveUrl, 'supportform/staffs');
     try {
       final response = await _client
           .post(
@@ -100,7 +100,7 @@ class SupportFormService {
     }
     final uri = _buildUri(
       liveUrl,
-      'Employee-Connect/supportform/requestuser',
+      'supportform/requestuser',
     ).replace(queryParameters: {'requestUserId': staffId});
     try {
       final response = await _client
@@ -141,7 +141,7 @@ class SupportFormService {
 
     final uri = _buildUri(
       liveUrl,
-      'Employee-Connect/supportform/contactperson',
+      'supportform/contactperson',
     ).replace(queryParameters: {'contactPersonId': staffId});
 
     try {
@@ -195,7 +195,7 @@ class SupportFormService {
 
     final uri = _buildUri(
       liveUrl,
-      'Employee-Connect/supportform/updatestatus',
+      'supportform/updatestatus',
     );
 
     try {
@@ -238,7 +238,7 @@ class SupportFormService {
       );
     }
 
-    final uri = _buildUri(liveUrl, 'Employee-Connect/supportform/create');
+    final uri = _buildUri(liveUrl, 'supportform/create');
 
     try {
       final response = await _client

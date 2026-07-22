@@ -118,14 +118,14 @@ class TimesheetService {
     final normalized = liveUrl.trim().endsWith('/')
         ? liveUrl.trim()
         : '${liveUrl.trim()}/';
-    return Uri.parse('${normalized}Employee-Connect/timesheet');
+    return Uri.parse('${normalized}timesheet');
   }
 
   Uri _buildStoreUri(String liveUrl) {
     final normalized = liveUrl.trim().endsWith('/')
         ? liveUrl.trim()
         : '${liveUrl.trim()}/';
-    return Uri.parse('${normalized}Employee-Connect/timesheet/store');
+    return Uri.parse('${normalized}timesheet/store');
   }
 
   TimeSheetHistoryModel _parseStoreResponse(http.Response response) {

@@ -59,7 +59,7 @@ class ProfileService {
         ? liveUrl.trim()
         : '${liveUrl.trim()}/';
     return Uri.parse(
-      '${normalized}Employee-Connect/profile/getProfileDetails/?emNo=$emNo',
+      '${normalized}profile/getProfileDetails/?emNo=$emNo',
     );
   }
 
